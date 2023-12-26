@@ -1,0 +1,92 @@
+import java.awt.BorderLayout;
+
+
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+
+import javax.swing.*;
+import org.jfree.chart.*;
+import org.jfree.chart.plot.PiePlot;
+import org.jfree.data.general.DefaultPieDataset;
+import org.jfree.ui.*;
+
+
+public class PerformanceOverviewApp extends JFrame {
+
+    public PerformanceOverviewApp() {
+        initUI();
+    }
+
+    private void initUI() {
+        // Dropdown-Menüs
+        JComboBox<String> weekComboBox = new JComboBox<>(new String[]{"Woche 1", "Woche 2"});
+        JComboBox<String> moduleComboBox = new JComboBox<>(new String[]{"Modul 1", "Modul 2"});
+
+        // JFreeChart Diagramm
+        DefaultPieDataset dataset = new DefaultPieDataset();
+        dataset.setValue("GM", 30.0);
+        dataset.setValue("UM", 20.0);
+        // ... weitere Daten hinzufügen
+        JFreeChart chart = ChartFactory.createPieChart("Soll-Ist Vergleich", dataset, true, true, false);
+        ChartPanel chartPanel = new ChartPanel(chart);
+        ((PiePlot) chart.getPlot()).setSectionOutlinesVisible(true);
+
+        // Buttons
+        JButton backButton = new JButton("Zurück zur Modulplanung");
+        JButton finishButton = new JButton("Fertigstellen");
+
+        // Layout und Komponenten hinzufügen
+        JPanel topPanel = new JPanel(new BorderLayout());
+        topPanel.add(weekComboBox, BorderLayout.WEST);
+        topPanel.add(moduleComboBox, BorderLayout.EAST);
+
+        setLayout(new BorderLayout());
+        add(topPanel, BorderLayout.NORTH);
+        add(chartPanel, BorderLayout.CENTER);
+        add(backButton, BorderLayout.WEST);
+        add(finishButton, BorderLayout.EAST);
+
+        // Event Handling
+        backButton.addActionListener(e -> goBackToModulePlanning());
+        finishButton.addActionListener(e -> finish());
+
+        // Fenster-Eigenschaften
+        pack();
+        setTitle("Leistungsübersicht");
+        setLocationRelativeTo(null);
+       
+        setDefaultCloseOperation(EXIT_ON_CLOSE);
+      
+        
+        backButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (e.getSource() == backButton) {
+                    dispose();
+                    Main s = new Main();
+                    s.setVisible(true);
+                }
+            }
+        });}
+
+    private void goBackToModulePlanning() {
+        // Logik für "Zurück zur Modulplanung"
+    }
+
+    private void finish() {
+        // Logik für "Fertigstellen"
+    }
+
+    public static void main(String[] args) {
+    	try {
+			UIManager.setLookAndFeel("javax.swing.plaf.nimbus.NimbusLookAndFeel");
+		} catch (UnsupportedLookAndFeelException | ClassNotFoundException | InstantiationException
+				| IllegalAccessException e) {
+			e.printStackTrace();
+		}
+        SwingUtilities.invokeLater(() -> {
+            PerformanceOverviewApp app = new PerformanceOverviewApp();
+            app.setVisible(true);
+        });
+    }
+}
