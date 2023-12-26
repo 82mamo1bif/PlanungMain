@@ -1,240 +1,198 @@
 import javax.swing.*;
-
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.table.DefaultTableModel;
-
-import javax.swing.event.ListSelectionListener;
 import java.util.ArrayList;
+import java.awt.Color;
+import java.awt.Container;
+import java.awt.Font;
 import java.util.Date;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
+import javax.swing.table.DefaultTableModel;
+import javax.swing.table.JTableHeader;
 
-public class ModulAnlegenSwingApp {
+public class ModulAnlegen extends JFrame implements ActionListener {
 
-	private JTextField moduleNameField;
-	private JComboBox<String> priorityComboBox;
-	private JTable table;
-	private JFrame frame;
-	 private Main mainInstance;
+	public class Module {
 
-	    
-
-	   
-	/**
-	 * @wbp.parser.entryPoint
-	 */
-	ModulAnlegenSwingApp(Main mainInstance) {
-        this.mainInstance = mainInstance;
-
-		try {
-			UIManager.setLookAndFeel("javax.swing.plaf.nimbus.NimbusLookAndFeel");
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		frame = new JFrame("Modul anlegen");
-		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		frame.setSize(400, 600);
-
-		JPanel panel = createFormPanel();
-		frame.getContentPane().add(panel);
-
-		frame.setVisible(true);
 	}
-	
-    
-	private JPanel createFormPanel() {
-		GridBagLayout gbl_panel = new GridBagLayout();
-		gbl_panel.rowWeights = new double[] { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
-		gbl_panel.columnWeights = new double[] { 0.0, 1.0 };
-		JPanel panel = new JPanel(gbl_panel);
 
-		// Modulname
-		JLabel nameLabel = new JLabel("Name:");
-		GridBagConstraints nameLabelConstraints = new GridBagConstraints();
-		nameLabelConstraints.gridx = 0;
-		nameLabelConstraints.gridy = 0;
-		nameLabelConstraints.insets = new Insets(10, 10, 10, 10);
-		panel.add(nameLabel, nameLabelConstraints);
+	private Container c;
+	private ImageIcon img1, img2;
+	private Font f, font;
+	private Date date;
+	private JLabel courseLabel, priorityLabel, choosenLabel, Versuchlabel;
+	private JButton addButton;
+	private JComboBox cmbx1, cmbx2, cmbx3;
+	private JTable table;
+	private JTableHeader header;
+	private DefaultTableModel model;
+	private JTextField moduleNameTextField;
+	static String[] coursesList = { "CSE115", "CSE115L", "CSE173", "CSE215", "CSE215L", "CSE225", "CSE225L", "CSE231",
+			"CSE231L", "CSE299", "CSE332", "CSE311", "CSE331L", "CSE323", "CSE327", "CSE499A", "MAT116", "MAT120",
+			"MAT125", "MAT130", "MAT250", "MAT350", "MAT361", "PHY107", "PHY107L", "CHE101", "CHE101L", "BIO103",
+			"BIO103L", "BEN205", "ENG102", "ENG103", "ENG111", "EEE111", "EEE111L", "EEE141", "EEE141L", "EEE154",
+			"EEE452", "POL101", "ECO101" };
 
-		moduleNameField = new JTextField("Programmieren 2", 10);
-		GridBagConstraints moduleNameFieldConstraints = new GridBagConstraints();
-		moduleNameFieldConstraints.gridx = 1;
-		moduleNameFieldConstraints.gridy = 0;
-		moduleNameFieldConstraints.insets = new Insets(10, 10, 10, 10);
-		panel.add(moduleNameField, moduleNameFieldConstraints);
+	public static String[] priorityList = { "1", "2", "3", "4", "5", "6", "7", "8", "9" };
+	public static String[] Versuche = { "1", "2", "3" };
+	public static String[] credit = { "3", "1", "3", "3", "1", "3", "0", "3", "0", "1", "3", "3", "0", "3", "3", "7.5",
+			"0", "3", "3", "3", "3", "3", "3", "3", "1", "3", "1", "3", "1", "3", "3", "3", "3", "3", "1", "3", "1",
+			"1", "3", "3", "3" };
+	private String[] col = { "#", "Courses", "Credit", "Course Title", "Priority", "Date and Time" };
+	public static String[] row = new String[6];
 
-		// ECTS
-		JLabel ectsLabel = new JLabel("ECTS:");
-		GridBagConstraints ectsLabelConstraints = new GridBagConstraints();
-		ectsLabelConstraints.gridx = 0;
-		ectsLabelConstraints.gridy = 1;
-		ectsLabelConstraints.insets = new Insets(10, 10, 10, 10);
-		panel.add(ectsLabel, ectsLabelConstraints);
+	public Main mainInstance;
+	private JPanel panel;
 
-		SpinnerNumberModel ectsModel = new SpinnerNumberModel(7, 0, 30, 1);
-		JSpinner ectsSpinner = new JSpinner(ectsModel);
-		GridBagConstraints ectsSpinnerConstraints = new GridBagConstraints();
-		ectsSpinnerConstraints.gridx = 1;
-		ectsSpinnerConstraints.gridy = 1;
-		ectsSpinnerConstraints.insets = new Insets(10, 10, 10, 10);
-		panel.add(ectsSpinner, ectsSpinnerConstraints);
+	ModulAnlegen() {
+		super("ModulAnlegen");
+		mainInstance = Main.getInstance(); // Verwenden Sie die Singleton-Methode für Zugriff auf die Instanz von Main
+		preAdvising1();
+	}
 
-		// SWS
-		JLabel swsLabel = new JLabel("SWS:");
-		GridBagConstraints swsLabelConstraints = new GridBagConstraints();
-		swsLabelConstraints.gridx = 0;
-		swsLabelConstraints.gridy = 2;
-		swsLabelConstraints.insets = new Insets(10, 10, 10, 10);
-		panel.add(swsLabel, swsLabelConstraints);
+	ModulAnlegen(Main mainInstance) {
+		this.mainInstance = mainInstance;
+	}
 
-		SpinnerNumberModel swsModel = new SpinnerNumberModel(8, 0, 30, 1);
-		JSpinner swsSpinner = new JSpinner(swsModel);
-		GridBagConstraints swsSpinnerConstraints = new GridBagConstraints();
-		swsSpinnerConstraints.gridx = 1;
-		swsSpinnerConstraints.gridy = 2;
-		swsSpinnerConstraints.insets = new Insets(10, 10, 10, 10);
-		panel.add(swsSpinner, swsSpinnerConstraints);
+	public void preAdvising1() {
+		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		this.setBounds(120, 200, 508, 891);
 
-		// Priorität
-		JLabel priorityLabel = new JLabel("Priorität:");
-		GridBagConstraints priorityLabelConstraints = new GridBagConstraints();
-		priorityLabelConstraints.gridx = 0;
-		priorityLabelConstraints.gridy = 3;
-		priorityLabelConstraints.insets = new Insets(10, 10, 10, 10);
-		panel.add(priorityLabel, priorityLabelConstraints);
+		img1 = new ImageIcon(getClass().getResource("deleted.png")); // Add to JFrame logo image
+		img2 = new ImageIcon(getClass().getResource("course.png"));
+		this.setIconImage(img2.getImage());
 
-		String[] priorities = { "None", "niedrig", "Mittelständig", "Hoch" };
-		priorityComboBox = new JComboBox<>(priorities);
-		GridBagConstraints priorityComboBoxConstraints = new GridBagConstraints();
-		priorityComboBoxConstraints.gridx = 1;
-		priorityComboBoxConstraints.gridy = 3;
-		priorityComboBoxConstraints.insets = new Insets(10, 10, 10, 10);
-		panel.add(priorityComboBox, priorityComboBoxConstraints);
+		c = this.getContentPane();
+		c.setLayout(null);
 
-		// Versuche (Buttons)
-		JPanel attemptsPanel = new JPanel(new FlowLayout());
-		JButton firstAttemptButton = new JButton("1. Versuch");
-		JButton secondAttemptButton = new JButton("2. Versuch");
-		JButton thirdAttemptButton = new JButton("3. Versuch");
-		attemptsPanel.add(firstAttemptButton);
-		attemptsPanel.add(secondAttemptButton);
-		attemptsPanel.add(thirdAttemptButton);
-		GridBagConstraints attemptsPanelConstraints = new GridBagConstraints();
-		attemptsPanelConstraints.gridx = 0;
-		attemptsPanelConstraints.gridy = 4;
-		attemptsPanelConstraints.gridwidth = 2;
-		attemptsPanelConstraints.insets = new Insets(10, 10, 10, 10);
-		panel.add(attemptsPanel, attemptsPanelConstraints);
+		f = new Font("Times New Roman", Font.BOLD, 20);
+		font = new Font("Times New Roman", Font.BOLD, 22);
 
-		// Schieberegler für Wochen
-		JLabel sliderLabel = new JLabel("0 / Woche");
-		GridBagConstraints sliderLabelConstraints = new GridBagConstraints();
-		sliderLabelConstraints.gridx = 0;
-		sliderLabelConstraints.gridy = 5;
-		sliderLabelConstraints.gridwidth = 2;
-		sliderLabelConstraints.insets = new Insets(10, 10, 10, 10);
-		panel.add(sliderLabel, sliderLabelConstraints);
+		courseLabel = new JLabel("Modulname :");
+		courseLabel.setFont(font);
+		courseLabel.setBounds(41, 128, 151, 16);
+		c.add(courseLabel);
 
-		JSlider weeksSlider = new JSlider(0, 14);
-		weeksSlider.addChangeListener(new ChangeListener() {
-			@Override
-			public void stateChanged(ChangeEvent e) {
-				sliderLabel.setText(weeksSlider.getValue() + " / Woche");
-			}
-		});
-		GridBagConstraints weeksSliderConstraints = new GridBagConstraints();
-		weeksSliderConstraints.gridx = 0;
-		weeksSliderConstraints.gridy = 6;
-		weeksSliderConstraints.gridwidth = 2;
-		weeksSliderConstraints.insets = new Insets(10, 10, 10, 10);
-		panel.add(weeksSlider, weeksSliderConstraints);
-		// Initialize the table and model
+		moduleNameTextField = new JTextField();
+		moduleNameTextField.setFont(f);
+		moduleNameTextField.setBounds(251, 117, 201, 40);
+		c.add(moduleNameTextField);
+
+		priorityLabel = new JLabel("ECTS:");
+		priorityLabel.setFont(font);
+		priorityLabel.setBounds(41, 352, 88, 16);
+		c.add(priorityLabel);
+
+		Versuchlabel = new JLabel("Versuche:");
+		Versuchlabel.setFont(font);
+		Versuchlabel.setBounds(41, 233, 114, 16);
+		c.add(Versuchlabel);
+
+		cmbx1 = new JComboBox(Versuche);
+		cmbx1.setFont(f);
+		cmbx1.setSelectedItem("CSE225");
+		cmbx1.setBounds(251, 234, 201, 24);
+		cmbx1.setEditable(true);
+		c.add(cmbx1);
+		cmbx1.setEditable(false); // Set the JComboBox to be non-editable
+
+		cmbx2 = new JComboBox(priorityList);
+		cmbx2.setFont(f);
+		cmbx2.setSelectedItem("1");
+		cmbx2.setBounds(254, 348, 198, 24);
+		cmbx2.setEditable(false);
+		c.add(cmbx2);
+
+		addButton = new JButton("Add");
+		addButton.setFont(f);
+		addButton.setBounds(143, 575, 208, 40);
+		c.add(addButton);
+
+		choosenLabel = new JLabel("Your choosen course:");
+		choosenLabel.setFont(font);
+		choosenLabel.setBounds(20, 27, 300, 16);
+		c.add(choosenLabel);
+
 		table = new JTable();
+		model = new DefaultTableModel();
+		model.setColumnIdentifiers(col);
 
-		JButton addButton = new JButton("Add");
-		GridBagConstraints addButtonConstraints = new GridBagConstraints();
-		addButtonConstraints.anchor = GridBagConstraints.WEST;
-		addButtonConstraints.gridx = 1;
-		addButtonConstraints.gridy = 9;
-		addButtonConstraints.insets = new Insets(10, 10, 10, 10);
-		panel.add(addButton, addButtonConstraints);
+		addButton.addActionListener(this);
 
-		table.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
-			@Override
-			public void valueChanged(ListSelectionEvent e) {
-				// This method is called whenever the selection value changes in the table
-				int selectedRow = table.getSelectedRow();
-				// Check if a row is actually selected
-				if (selectedRow >= 0) {
-					// Access the selected module: selectedModules.get(selectedRow)
-					// You can perform actions based on the selected row here
-				}
-			}
-		});
-		addButton.addActionListener(new ActionListener() {
-		    @Override
-		    public void actionPerformed(ActionEvent e) {
-		        // Rufen Sie die Methode zum Zugriff auf die Werte von row auf
-		    	String[] rowValues = mainInstance.getRow();
-			    // Füllen Sie das row-Array mit den entsprechenden Daten aus den UI-Feldern
-			    rowValues[0] = "1";  // Beispiel: Fügen Sie Ihre Daten entsprechend ein
-			    rowValues[1] = moduleNameField.getText();
-			    rowValues[2] = ectsSpinner.getValue().toString();
-			    rowValues[3] = swsSpinner.getValue().toString();
-			    rowValues[4] = priorityComboBox.getSelectedItem().toString();
-			    rowValues[5] = new Date().toString();
+		JButton monitorProgressButton = new JButton(" Abbrechen");
+		monitorProgressButton.setFont(f);
+		monitorProgressButton.setBackground(Color.ORANGE);
+		monitorProgressButton.setBounds(144, 666, 207, 40);
+		c.add(monitorProgressButton);
 
-			    // Rufen Sie die Methode in der Main-Klasse auf, um die Zeile zur Tabelle hinzuzufügen
-			    mainInstance.addRowToTable(rowValues);
-		    }
-		});
-
-
-		// Abschluss-Buttons
-		JButton cancelButton = new JButton("Abbrechen");
-		GridBagConstraints cancelButtonConstraints = new GridBagConstraints();
-		cancelButtonConstraints.anchor = GridBagConstraints.WEST;
-		cancelButtonConstraints.gridx = 1;
-		cancelButtonConstraints.gridy = 10;
-		cancelButtonConstraints.insets = new Insets(10, 10, 10, 10);
-		panel.add(cancelButton, cancelButtonConstraints);
-		cancelButton.addActionListener(new ActionListener() {
+		monitorProgressButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				if (e.getSource() == cancelButton) {
-					// Get the reference to the JFrame containing the cancel button
-
-					// Close/dispose the current frame
-					frame.dispose();
-
-					// Open the Preadvising GUI
-					Main Main = new Main();
-					Main.setVisible(true);
+				if (e.getSource() == monitorProgressButton) {
+					dispose();
+					Main pre = new Main();
+					pre.setVisible(true);
 				}
 			}
 		});
+		getContentPane().add(monitorProgressButton);
+		
+		panel = new JPanel();
+		panel.setBounds(-13, 533, 527, 224);
+		getContentPane().add(panel);
 
-		return panel;
+		panel.setBackground(new Color(255, 182, 193)); // Light Magenta
+		}
+
+	@Override
+	public void actionPerformed(ActionEvent e) {
+		if (e.getSource() == addButton) {
+			if (table.getRowCount() == 8) {
+				JOptionPane.showMessageDialog(null, "You can't add more courses.");
+			} else {
+				int count = table.getRowCount() + 1;
+				String total = String.valueOf(count);
+				String[] row = new String[6];
+				row[0] = total;
+				row[1] = moduleNameTextField.getText();
+				row[2] = cmbx1.getSelectedItem().toString(); // Get the selected item from cmbx1
+
+				for (int i = 0; i < coursesList.length; i++) {
+					if (cmbx1.getSelectedItem().toString().equals(coursesList[i])) {
+						row[2] = credit[i];
+						row[3] = Versuche[i];
+						break;
+					}
+				}
+				row[3] = cmbx2.getSelectedItem().toString();
+				date = new Date();
+				row[4] = date.toString();
+
+				model.addRow(row);
+
+				// Neues Modul erstellen und zur Liste in Main hinzufügen
+				Main.Module newModule = new Main.Module(row[1], row[2], row[3], "", row[4]);
+				mainInstance.addModule(newModule);
+			}
+
+		}
 	}
-
-
 
 	public static void main(String[] args) {
-		SwingUtilities.invokeLater(() -> {
-			new ModulAnlegenSwingApp(new Main()).createFormPanel();
-		});
-	}
+		try {
+			UIManager.setLookAndFeel("javax.swing.plaf.nimbus.NimbusLookAndFeel");
+		} catch (UnsupportedLookAndFeelException | ClassNotFoundException | InstantiationException
+				| IllegalAccessException e) {
+			e.printStackTrace();
+		}
 
-	public void setVisible(boolean b) {
-		SwingUtilities.invokeLater(() -> {
-			new ModulAnlegenSwingApp(new Main()).createFormPanel();
+		SwingUtilities.invokeLater(new Runnable() {
+			@Override
+			public void run() {
+				new ModulAnlegen().setVisible(true);
+			}
 		});
 	}
 }
