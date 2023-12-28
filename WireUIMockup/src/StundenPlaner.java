@@ -1,171 +1,202 @@
 import javax.swing.*;
 
-
-
 import java.awt.*;
-import java.awt.event.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
 import java.util.Date;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 
-public class StundenPlaner extends JFrame {
-    // Deklaration der Komponenten
-    private JComboBox<String> modulComboBox;
-    private JSlider cpSlider;
-    private JTextField vonTextField;
-    private JTextField bisTextField;
-    private JTextField planungTextField;
-    private JLabel stundenLabel;
-    private JCheckBox speichernCheckBox;
-    private JButton speichernButton;
-	  private JFrame frame;
-    private JButton backButton ;
-    private Timer timer;
-    private int seconds;
-    
-    StundenPlaner() {
-        super("Semester Info");
-        initComponents();
+public class Editor extends JFrame implements ActionListener{
 
-        // Setze das Look and Feel (Nimbus)
-        try {
-            UIManager.setLookAndFeel("javax.swing.plaf.nimbus.NimbusLookAndFeel");
-            SwingUtilities.updateComponentTreeUI(this);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+	private JComboBox<String> modulComboBox;
+	private JTextField cpTextField; // Replace JSlider with JTextField for Credit Points
+	private JTextField vonTextField;
+	private JTextField bisTextField;
+	private JTextField planungTextField;
+	private JLabel stundenLabel;
+	private JCheckBox speichernCheckBox;
+	private JButton speichernButton;
+	private JButton backButton;
+	private JPanel northPanel;
+	private JLabel stundenLabel_1;
+	private int creditPoints;
+	private static Editor instance;
+
+	Editor() {
+		super("Semester Info");
+		northPanel = new JPanel(new GridLayout(0, 1)); // Initialize northPanel in the constructor
+		initComponents();
+	}
+
+	public void initComponents() {
+
+		// Fenster-Eigenschaften
+		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		this.setBounds(120, 200, 508, 891);
+		setTitle("Stunden Planer");
+		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		pack();
+		setSize(428, 451);
+		setVisible(true);
+		
+		
+		modulComboBox = new JComboBox<>(new String[] {});
+
+		cpTextField = new JTextField(" "); // Default value
+		cpTextField.setEditable(false); // Set it to not editable
+		northPanel.add(new JLabel("Credit Points (CP):"));
+
+		vonTextField = new JTextField(new SimpleDateFormat("dd.MM.yyyy").format(new Date()));
+		bisTextField = new JTextField(new SimpleDateFormat("dd.MM.yyyy").format(new Date()));
+		planungTextField = new JTextField("Stunden gesamt");
+		stundenLabel = new JLabel("");
+		stundenLabel.setBackground(getBackground().RED);
+		speichernCheckBox = new JCheckBox("Ergebnis speichern");
+		speichernButton = new JButton("Speichern");
+
+		// Setzen der Layouts und HinsnzufÃ¼gen der Komponenten
+		getContentPane().setLayout(new BorderLayout());
+		JPanel northPanel = new JPanel(new GridLayout(0, 1));
+
+		// Set layouts and add components
+
+		northPanel.add(new JLabel("Modul:"));
+		northPanel.add(modulComboBox);
+		northPanel.add(new JLabel("Credit Points (CP):"));
+		northPanel.add(cpTextField);
+		northPanel.add(new JLabel("Von:"));
+		northPanel.add(vonTextField);
+		northPanel.add(new JLabel("Bis:"));
+		northPanel.add(bisTextField);
+		northPanel.add(new JLabel("Wochenplanung: gesamte Stunde Pro Woche"));
+		northPanel.add(planungTextField);
+		getContentPane().add(northPanel, BorderLayout.NORTH);
+
+		JPanel centerPanel = new JPanel(new FlowLayout());
+
+		stundenLabel_1 = new JLabel("geplante Stunden pro Woche");
+		centerPanel.add(stundenLabel_1);
+		centerPanel.add(stundenLabel);
+		getContentPane().add(centerPanel, BorderLayout.CENTER);
+
+		JPanel southPanel = new JPanel(new FlowLayout());
+		southPanel.add(speichernCheckBox);
+		backButton = new JButton("ZurÃ¼ck");
+		southPanel.add(backButton);
+
+		backButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				if (e.getSource() == backButton) {
+					dispose();
+					Main s = new Main();
+					s.setVisible(true);
+				}
+			}
+		});
+		southPanel.add(speichernButton);
+		getContentPane().add(southPanel, BorderLayout.SOUTH);
+
+		JPanel EastPanel = new JPanel(new FlowLayout());
+		getContentPane().add(EastPanel, BorderLayout.EAST);
+
+		// Listener for the Speichern-Button
+		speichernButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				berechneStunden();
+				if (speichernCheckBox.isSelected()) {
+					speichereErgebnis();
+				}
+			}
+		});
+
+	}
+
+	private void berechneStunden() {
+
+		// Calculation of weekly planning hours using JTextField for Credit Points
+		try {
+			int wochen = 1; // Placeholder logic, you should calculate the difference between dates
+			int planStunden = Integer.parseInt(planungTextField.getText());
+			int creditPoints = Integer.parseInt(cpTextField.getText());
+			int prWoche = wochen * planStunden * creditPoints;
+			stundenLabel.setText(prWoche + " wochen Stunden gesamt");
+
+		
+		} catch (NumberFormatException e) {
+			JOptionPane.showMessageDialog(this, "Invalid input for Credit Points or Weekly Planning.", "Error",
+					JOptionPane.ERROR_MESSAGE);
+		}
+
+	}
+
+	// Methode, um den Modulnamen zum JComboBox hinzuzufÃ¼gen
+	public void addModuleNameToComboBox(String moduleName) {
+		modulComboBox.addItem(moduleName);
+	}
+
+	// Method to add priority to the JTextField
+	public void addPriorityToTextField(String priority) {
+		cpTextField.setText(priority);
+	}
+
+	public static Editor getInstance() {
+		if (instance == null) {
+			instance = new Editor();
+		}
+		return instance;
+	}
+
+
+	private void speichereErgebnis() {
+		try {
+			BufferedWriter writer = new BufferedWriter(new FileWriter("ergebnis.txt"));
+			writer.write("Modul: " + modulComboBox.getSelectedItem().toString());
+			writer.newLine();
+			writer.write(": " + cpTextField.getText() + " CP");
+			writer.newLine();
+			writer.write("Von: " + vonTextField.getText());
+			writer.newLine();
+			writer.write("Bis: " + bisTextField.getText());
+			writer.newLine();
+			writer.write("Wochenplanung: " + planungTextField.getText() + " Stunden pro Woche");
+			writer.newLine();
+			writer.write("Gesamtstunden: " + stundenLabel.getText());
+			writer.newLine();
+			writer.close();
+			JOptionPane.showMessageDialog(this, "Ergebnis erfolgreich gespeichert.");
+		} catch (IOException ex) {
+			ex.printStackTrace();
+			JOptionPane.showMessageDialog(this, "Fehler beim Speichern des Ergebnisses.", "Fehler",
+					JOptionPane.ERROR_MESSAGE);
+		}
+	}
+
+	public static void main(String[] args) {
+		try {
+			UIManager.setLookAndFeel("javax.swing.plaf.nimbus.NimbusLookAndFeel");
+		} catch (UnsupportedLookAndFeelException | ClassNotFoundException | InstantiationException
+				| IllegalAccessException e) {
+			e.printStackTrace();
+		}
+
+		SwingUtilities.invokeLater(() -> new Editor());
+	}
+
+	@Override
+	public void actionPerformed(ActionEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	
+
+	
+    public void setModuleNameAndCredit(String moduleName, String creditPoints) {
+        modulComboBox.addItem(moduleName);
+        cpTextField.setText(creditPoints);
     }
-    
-    public void initComponents() {
-    	
-     // Initialisierung der Komponenten
-        modulComboBox = new JComboBox<>(new String[]{"Unternehmenssoftware 1", "Modul 2", "Modul 3"});
-        cpSlider = new JSlider(1, 10, 7);
-        vonTextField = new JTextField(new SimpleDateFormat("dd.MM.yyyy").format(new Date()));
-        bisTextField = new JTextField(new SimpleDateFormat("dd.MM.yyyy").format(new Date()));
-        planungTextField = new JTextField("Stunden gesamt");
-        stundenLabel = new JLabel("0 Stunden gesamt");
-        speichernCheckBox = new JCheckBox("Ergebnis speichern");
-        speichernButton = new JButton("Speichern");
-         backButton = new JButton("Zurück");
-
-        
-        // Setzen der Layouts und Hinzufügen der Komponenten
-        getContentPane().setLayout(new BorderLayout());
-        JPanel northPanel = new JPanel(new GridLayout(0, 1));
-
-        northPanel.add(modulComboBox);
-        northPanel.add(cpSlider);
-        northPanel.add(vonTextField);
-        northPanel.add(bisTextField);
-        northPanel.add(planungTextField);
-        getContentPane().add(northPanel, BorderLayout.NORTH);
-        
-        JPanel centerPanel = new JPanel(new FlowLayout());
-        centerPanel.add(stundenLabel);
-        getContentPane().add(centerPanel, BorderLayout.CENTER);
-        
-        JPanel southPanel = new JPanel(new FlowLayout());
-        southPanel.add(speichernCheckBox);
-        southPanel.add(speichernButton);
-        getContentPane().add(southPanel, BorderLayout.SOUTH);
-        
-        JPanel EastPanel = new JPanel(new FlowLayout());
-        EastPanel.add(backButton);
-        getContentPane().add(EastPanel, BorderLayout.EAST);
-        
-        timer = new Timer(1000, new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                seconds++;
-                updateTimeLabel();
-            }
-        });
-        JPanel panel = new JPanel();
-
-        getContentPane().add(panel);
-    
-        // Listener für den Speichern-Button
-        speichernButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                berechneStunden();
-                if(speichernCheckBox.isSelected()) {
-                    speichereErgebnis();
-                }
-            }
-        });
-        
-        // Fenster-Eigenschaften
-        setTitle("Stunden Planer");
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        pack();
-        setSize(517, 311);
-        setVisible(true);
-
-
-        backButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                if (e.getSource() == backButton) {
-                    dispose();
-                    Preadvising s = new Preadvising();
-                    s.setVisible(true);
-                }
-            }
-        });
-    }
-    
-    private void berechneStunden() {
-        // Berechnung der Stunden (Platzhalterlogik)
-        int wochen = 1; // Hier sollten Sie die Differenz zwischen den Daten berechnen
-        int planStunden = Integer.parseInt(planungTextField.getText());
-        int gesamtStunden = wochen * planStunden * cpSlider.getValue();
-        stundenLabel.setText(gesamtStunden + " Stunden gesamt");
-    }
-    
-    private void speichereErgebnis() {
-        try {
-            BufferedWriter writer = new BufferedWriter(new FileWriter("ergebnis.txt"));
-            writer.write("Modul: " + modulComboBox.getSelectedItem().toString());
-            writer.newLine();
-            writer.write(": " + cpSlider.getValue() + " CP");
-            writer.newLine();
-            writer.write("Von: " + vonTextField.getText());
-            writer.newLine();
-            writer.write("Bis: " + bisTextField.getText());
-            writer.newLine();
-            writer.write("Wochenplanung: " + planungTextField.getText() + " Stunden pro Woche");
-            writer.newLine();
-            writer.write("Gesamtstunden: " + stundenLabel.getText());
-            writer.newLine();
-            writer.close();
-            JOptionPane.showMessageDialog(this, "Ergebnis erfolgreich gespeichert.");
-            } catch (IOException ex) {
-            ex.printStackTrace();
-            JOptionPane.showMessageDialog(this, "Fehler beim Speichern des Ergebnisses.", "Fehler", JOptionPane.ERROR_MESSAGE);
-            }
-            }
-    public static void main(String[] args) throws ClassNotFoundException, InstantiationException, IllegalAccessException {  
-    	try {
-    		UIManager.setLookAndFeel( UIManager.getCrossPlatformLookAndFeelClassName());
-    } catch (UnsupportedLookAndFeelException e) {
-        e.printStackTrace();
-    }
-
-    SwingUtilities.invokeLater(new Runnable() {
-        public void run() {
-            new StundenPlaner();
-        }
-    });
-    }
-
-    private void updateTimeLabel() {
-
-    }
-
 }
