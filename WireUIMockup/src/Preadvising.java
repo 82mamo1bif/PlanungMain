@@ -1,6 +1,5 @@
 import javax.swing.*;
 
-
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
@@ -14,6 +13,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.util.Date;
+import java.util.List;
 
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
@@ -27,25 +27,25 @@ public class Main extends JFrame implements ActionListener {
 	private ImageIcon img1, img2;
 	private Font f, font;
 	private Date date;
-	private JButton addButton, deleteButton, backButton, saveButton;
+	private JButton addButton, deleteButton, Editor, saveButton;
 
 	public static JTable table;
 	public static JTableHeader header;
 	public static DefaultTableModel model;
 	private JScrollPane scroll;
 
-
-
 	private String[] col = { "#", "Courses", "Credit", "ECTS", " ", "Date and Time" };
-	
+
 	public ArrayList<Module> selectedModules; // Liste zum Speichern der ausgewählten Module
 
-	private static Main instance; // Ändern Sie instance zu static
+	private static Main instance;
+	public Main editorinstance;
 
 	Main() {
-		super("Pre-Advising");
+		super("Main");
 		selectedModules = new ArrayList<>();
 		instance = this; // Aktualisieren Sie die Instanz auf die aktuelle Instanz von Main
+		editorinstance = this;
 		preAdvising();
 	}
 
@@ -92,8 +92,6 @@ public class Main extends JFrame implements ActionListener {
 		table.getColumnModel().getColumn(4).setPreferredWidth(130);
 		table.getColumnModel().getColumn(5).setPreferredWidth(375);
 
-		
-
 		// change to table header font and color
 		header = table.getTableHeader();
 		header.setFont(new Font("Times New Roman", Font.BOLD, 18));
@@ -104,48 +102,48 @@ public class Main extends JFrame implements ActionListener {
 		c.add(scroll);
 
 		deleteButton = new JButton(img1);
-		deleteButton.setBackground(Color.MAGENTA);
+		deleteButton.setBackground(Color.RED);
 		deleteButton.setBounds(35, 775, img1.getIconWidth(), img1.getIconHeight());
 		c.add(deleteButton);
 
-		backButton = new JButton("Back");
-		backButton.setFont(f);
-		backButton.setBackground(Color.GREEN);
+		Editor = new JButton("Editor");
+		Editor.setFont(f);
+		Editor.setBackground(Color.GREEN);
 		;
-		backButton.setBounds(20, 311, 302, 36);
-		c.add(backButton);
+		Editor.setBounds(20, 311, 302, 36);
+		c.add(Editor);
 		// In der Preadvising-Klasse, wo Sie die Tabelle erstellen
-				table.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
-					@Override
-					public void valueChanged(ListSelectionEvent e) {
-						if (!e.getValueIsAdjusting()) {
-							int selectedRow = table.getSelectedRow();
-							if (selectedRow >= 0) {
-								// Auf die Daten in der ausgewählten Zeile zugreifen
-								String courseName = table.getValueAt(selectedRow, 1).toString();
-								String credit = table.getValueAt(selectedRow, 2).toString();
-								String versuche = table.getValueAt(selectedRow, 3).toString();
-								String dateTime = table.getValueAt(selectedRow, 4).toString();
+		table.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
+			@Override
+			public void valueChanged(ListSelectionEvent e) {
+				if (!e.getValueIsAdjusting()) {
+					int selectedRow = table.getSelectedRow();
+					if (selectedRow >= 0) {
+						// Auf die Daten in der ausgewählten Zeile zugreifen
+						String courseName = table.getValueAt(selectedRow, 1).toString();
+						String credit = table.getValueAt(selectedRow, 2).toString();
+						String versuche = table.getValueAt(selectedRow, 3).toString();
+						String dateTime = table.getValueAt(selectedRow, 4).toString();
 
-								// Überprüfen, ob das Modul bereits ausgewählt wurde
-								boolean moduleAlreadySelected = false;
-								for (Main.Module module : selectedModules) {
-									if (module.getCourseName().equals(courseName)) {
-										moduleAlreadySelected = true;
-										break;
-									}
-								}
-
-								// Nur hinzufügen, wenn das Modul noch nicht ausgewählt wurde
-								if (!moduleAlreadySelected) {
-									selectedModules.add(new Main.Module(courseName, credit, versuche, "", // Placeholder for
-																											// 'priority'
-											dateTime));
-								}
+						// Überprüfen, ob das Modul bereits ausgewählt wurde
+						boolean moduleAlreadySelected = false;
+						for (Main.Module module : selectedModules) {
+							if (module.getCourseName().equals(courseName)) {
+								moduleAlreadySelected = true;
+								break;
 							}
 						}
+
+						// Nur hinzufügen, wenn das Modul noch nicht ausgewählt wurde
+						if (!moduleAlreadySelected) {
+							selectedModules.add(new Main.Module(courseName, credit, versuche, "", // Placeholder for
+																									// 'priority'
+									dateTime));
+						}
 					}
-				});
+				}
+			}
+		});
 		saveButton = new JButton("Save");
 		saveButton.setFont(f);
 		saveButton.setBackground(Color.GREEN);
@@ -155,12 +153,12 @@ public class Main extends JFrame implements ActionListener {
 
 		addButton.addActionListener(this);
 		deleteButton.addActionListener(this);
-		backButton.addActionListener(this);
+		Editor.addActionListener(this);
 		saveButton.addActionListener(this);
 
-		JButton deleteButton = new JButton("Löschen");
+		JButton deleteButton = new JButton("Übersicht");
 		deleteButton.setFont(f);
-		deleteButton.setBackground(Color.RED);
+		deleteButton.setBackground(Color.MAGENTA);
 		deleteButton.setBounds(20, 401, 302, 28);
 		deleteButton.addActionListener(this);
 		c.add(deleteButton);
@@ -175,8 +173,8 @@ public class Main extends JFrame implements ActionListener {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				if (e.getSource() == monitorProgressButton) {
-					
-					Bearbeiten pre = new Bearbeiten();
+
+					Zustand pre = new Zustand();
 					pre.setVisible(true);
 				}
 			}
@@ -187,6 +185,51 @@ public class Main extends JFrame implements ActionListener {
 		deleteButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
+
+				if (e.getSource() == deleteButton) {
+
+					PerformanceOverviewApp pr = new PerformanceOverviewApp();
+					pr.setVisible(true);
+				}
+			}
+
+		});
+		getContentPane().add(deleteButton);
+
+		JPanel panel = new JPanel();
+		panel.setBounds(0, 6, 1712, 889);
+		getContentPane().add(panel);
+		panel.setBackground(new Color(85, 125, 174)); // Light Magenta
+
+	}
+
+	@Override
+	public void actionPerformed(ActionEvent e) {
+		if (e.getSource() == addButton) {
+			if (table.getRowCount() == 8) {
+				JOptionPane.showMessageDialog(null, "You can't add more courses.");
+			} else {
+				ModulAnlegen m = new ModulAnlegen();
+				m.setVisible(true);
+			}
+		} else if (e.getSource() == Editor) {
+			// Öffnen Sie das Editor-Fenster mit den ausgewählten Informationen
+			Editor editor = new Editor();
+			editor.setVisible(true);
+			int[] selectedRows = table.getSelectedRows();
+			if (selectedRows.length > 0) {int selectedRow = table.getSelectedRow();
+	        if (selectedRow >= 0) {
+	            String moduleName = table.getValueAt(selectedRow, 1).toString();
+	            String creditPoints = table.getValueAt(selectedRow, 2).toString();
+
+	            // Open the Editor window with the selected module's information
+	            Editor editor1 = new Editor();
+	            editor1.setModuleNameAndCredit(moduleName, creditPoints);
+	            editor1.setVisible(true);
+	        }
+
+		}
+			else if (e.getSource() == deleteButton) {
 				int selectedRow = table.getSelectedRow();
 				if (selectedRow >= 0) {
 					// Das ausgewählte Modul aus der Liste entfernen
@@ -198,68 +241,33 @@ public class Main extends JFrame implements ActionListener {
 					// Andere UI-Komponenten aktualisieren, falls notwendig
 					// z.B., das JTextField für den Modulnamen leeren
 				}
-			}
-		});
-		getContentPane().add(deleteButton);
-		
-		JPanel panel = new JPanel();
-		panel.setBounds(0, 6, 334, 735);
-		getContentPane().add(panel);
-		panel.setBackground(new Color(255, 182, 193)); // Light Magenta		
-		
-	
-}
-
-
-	@Override
-	public void actionPerformed(ActionEvent e) {
-		if (e.getSource() == addButton) {
-			if (table.getRowCount() == 8) {
-				JOptionPane.showMessageDialog(null, "You can't add more courses.");
-			} else {
-				ModulAnlegen m = new ModulAnlegen();
-				m.setVisible(true);
-			}
-		} else if (e.getSource() == backButton) {
-			// ... (unchanged)
-		} else if (e.getSource() == deleteButton) {
-			int selectedRow = table.getSelectedRow();
-			if (selectedRow >= 0) {
-				// Das ausgewählte Modul aus der Liste entfernen
-				selectedModules.remove(selectedRow);
-
-				// Die Zeile aus der Tabelle entfernen
-				model.removeRow(selectedRow);
-
-				// Andere UI-Komponenten aktualisieren, falls notwendig
-				// z.B., das JTextField für den Modulnamen leeren
-			}
-		} else if (e.getSource() == saveButton) {
-			try {
-				File fp = new File("Preadvising.txt");
-				if (!fp.exists()) {
-					fp.createNewFile();
-				}
-
-				FileWriter fw = new FileWriter(fp.getAbsoluteFile());
-				BufferedWriter bw = new BufferedWriter(fw);
-
-				for (int i = 0; i < table.getRowCount(); i++) {
-					for (int j = 0; j < table.getColumnCount(); j++) {
-						bw.write(table.getModel().getValueAt(i, j) + " ");
+			} else if (e.getSource() == saveButton) {
+				try {
+					File fp = new File("Preadvising.txt");
+					if (!fp.exists()) {
+						fp.createNewFile();
 					}
-					bw.write("\r\n"); // Use a single newline character
-				}
-				bw.close();
-				fw.close();
-				JOptionPane.showMessageDialog(null, "Data saved successfully");
 
-			} catch (Exception ex) {
-				JOptionPane.showMessageDialog(null, "An error occurred");
+					FileWriter fw = new FileWriter(fp.getAbsoluteFile());
+					BufferedWriter bw = new BufferedWriter(fw);
+
+					for (int i = 0; i < table.getRowCount(); i++) {
+						for (int j = 0; j < table.getColumnCount(); j++) {
+							bw.write(table.getModel().getValueAt(i, j) + " ");
+						}
+						bw.write("\r\n"); // Use a single newline character
+					}
+					bw.close();
+					fw.close();
+					JOptionPane.showMessageDialog(null, "Data saved successfully");
+
+				} catch (Exception ex) {
+					JOptionPane.showMessageDialog(null, "An error occurred");
+				}
 			}
 		}
-	}
-
+	
+}
 	public void addModule(Module module) {
 
 		// Add the module data to the table
