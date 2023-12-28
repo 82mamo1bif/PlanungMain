@@ -1,4 +1,5 @@
 import javax.swing.*;
+
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -7,7 +8,7 @@ import java.util.Hashtable;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
-public class Bearbeiten extends JFrame implements ActionListener, ChangeListener {
+public class Zustand extends JFrame implements ActionListener, ChangeListener {
 
     private JTextField cpField;
     private JTextField lernaufwandField;
@@ -19,7 +20,7 @@ public class Bearbeiten extends JFrame implements ActionListener, ChangeListener
     private JButton saveButton;
     private JButton backButton;
 
-    public Bearbeiten() {
+    public Zustand() {
         super("Learning Tracker");
 
 
@@ -152,6 +153,6 @@ public class Bearbeiten extends JFrame implements ActionListener, ChangeListener
         } catch (UnsupportedLookAndFeelException | ClassNotFoundException | InstantiationException | IllegalAccessException e) {
             e.printStackTrace();
         }
-        SwingUtilities.invokeLater(() -> new Bearbeiten().setVisible(true));
+        SwingUtilities.invokeLater(() -> new Zustand().setVisible(true));
     }
 }
