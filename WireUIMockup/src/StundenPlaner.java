@@ -8,8 +8,12 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import java.time.temporal.ChronoUnit;
 
-public class Editor extends JFrame implements ActionListener{
+public class Editor extends JFrame implements ActionListener {
 
 	private JComboBox<String> modulComboBox;
 	private JTextField cpTextField; // Replace JSlider with JTextField for Credit Points
@@ -24,6 +28,9 @@ public class Editor extends JFrame implements ActionListener{
 	private JLabel stundenLabel_1;
 	private int creditPoints;
 	private static Editor instance;
+	// Beispiel-Daten (kannst du durch deine Textfelder ersetzen)
+	String vonDatumStr = "";
+	String bisDatumStr = "";
 
 	Editor() {
 		super("Semester Info");
@@ -41,8 +48,7 @@ public class Editor extends JFrame implements ActionListener{
 		pack();
 		setSize(428, 451);
 		setVisible(true);
-		
-		
+
 		modulComboBox = new JComboBox<>(new String[] {});
 
 		cpTextField = new JTextField(" "); // Default value
@@ -52,10 +58,12 @@ public class Editor extends JFrame implements ActionListener{
 		vonTextField = new JTextField(new SimpleDateFormat("dd.MM.yyyy").format(new Date()));
 		bisTextField = new JTextField(new SimpleDateFormat("dd.MM.yyyy").format(new Date()));
 		planungTextField = new JTextField("Stunden gesamt");
+		planungTextField.setEditable(false); // Set it to not editable
+
 		stundenLabel = new JLabel("");
 		stundenLabel.setBackground(getBackground().RED);
 		speichernCheckBox = new JCheckBox("Ergebnis speichern");
-		speichernButton = new JButton("Speichern");
+		speichernButton = new JButton("Rechnen");
 
 		// Setzen der Layouts und Hinsnzufügen der Komponenten
 		getContentPane().setLayout(new BorderLayout());
@@ -77,7 +85,7 @@ public class Editor extends JFrame implements ActionListener{
 
 		JPanel centerPanel = new JPanel(new FlowLayout());
 
-		stundenLabel_1 = new JLabel("geplante Stunden pro Woche");
+		stundenLabel_1 = new JLabel("geplante Stunden pro Semester");
 		centerPanel.add(stundenLabel_1);
 		centerPanel.add(stundenLabel);
 		getContentPane().add(centerPanel, BorderLayout.CENTER);
@@ -104,34 +112,65 @@ public class Editor extends JFrame implements ActionListener{
 		getContentPane().add(EastPanel, BorderLayout.EAST);
 
 		// Listener for the Speichern-Button
-		speichernButton.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				berechneStunden();
-				if (speichernCheckBox.isSelected()) {
-					speichereErgebnis();
-				}
-			}
-		});
+		speichernButton.addActionListener(this);
+	}
 
+	private long berechneDifferenzInWochen() {
+	    try {
+	        // Get the texts from the JTextFields
+	        String vonDatumStr = vonTextField.getText();
+	        String bisDatumStr = bisTextField.getText();
+
+	        // Überprüfung des Uhrzeitformats
+	        DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
+	        LocalDate vonDatum = LocalDate.parse(vonDatumStr, dateFormatter);
+	        LocalDate bisDatum = LocalDate.parse(bisDatumStr, dateFormatter);
+
+	        // Berechnung der Differenz in Wochen
+	        long differenzInWochen = vonDatum.until(bisDatum, ChronoUnit.WEEKS);
+
+	        // Anzeige der Differenz in der planungTextField
+	        planungTextField.setText(String.valueOf(differenzInWochen));
+
+	        // Rückgabe der Differenz für andere Verwendungszwecke
+	        return differenzInWochen;
+	    } catch (DateTimeParseException e) {
+	        // Hier wird auf eine falsche Eingabe reagiert, z.B. eine Meldung anzeigen
+	        JOptionPane.showMessageDialog(this, "Invalid input format. Please use the format dd.MM.yyyy.", "Error", JOptionPane.ERROR_MESSAGE);
+	        return -1; // Gib einen ungültigen Wert zurück, um auf einen Fehler hinzuweisen
+	    }
+	}
+
+
+	@Override
+	public void actionPerformed(ActionEvent e) {
+		if (e.getSource() == speichernButton) {
+			berechneStunden();
+		}
 	}
 
 	private void berechneStunden() {
+        try {
+            // Get the difference in weeks
+            long differenzInWochen = berechneDifferenzInWochen();
 
-		// Calculation of weekly planning hours using JTextField for Credit Points
-		try {
-			int wochen = 1; // Placeholder logic, you should calculate the difference between dates
-			int planStunden = Integer.parseInt(planungTextField.getText());
-			int creditPoints = Integer.parseInt(cpTextField.getText());
-			int prWoche = wochen * planStunden * creditPoints;
-			stundenLabel.setText(prWoche + " wochen Stunden gesamt");
+            // Check if the difference is valid
+            if (differenzInWochen >= 0) {
+                // Perform your calculation based on the difference
+                int creditPoints = Integer.parseInt(cpTextField.getText());
 
-		
-		} catch (NumberFormatException e) {
-			JOptionPane.showMessageDialog(this, "Invalid input for Credit Points or Weekly Planning.", "Error",
-					JOptionPane.ERROR_MESSAGE);
-		}
-
-	}
+                // Calculate the total planned hours per semester
+                int prSemester = (int) differenzInWochen * 5 * creditPoints;
+                stundenLabel.setText(prSemester + "");
+            } else {
+                // Handle the case where there's an error in the calculation of the difference
+                System.out.println("Fehler bei der Berechnung der Differenz.");
+            }
+        } catch (NumberFormatException e) {
+            // Handle incorrect input for Credit Points or Weekly Planning
+            JOptionPane.showMessageDialog(this, "Invalid input for Credit Points or Weekly Planning.", "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
 
 	// Methode, um den Modulnamen zum JComboBox hinzuzufügen
 	public void addModuleNameToComboBox(String moduleName) {
@@ -149,7 +188,6 @@ public class Editor extends JFrame implements ActionListener{
 		}
 		return instance;
 	}
-
 
 	private void speichereErgebnis() {
 		try {
@@ -186,17 +224,9 @@ public class Editor extends JFrame implements ActionListener{
 		SwingUtilities.invokeLater(() -> new Editor());
 	}
 
-	@Override
-	public void actionPerformed(ActionEvent e) {
-		// TODO Auto-generated method stub
-		
+	public void setModuleNameAndCredit(String moduleName, String creditPoints) {
+		modulComboBox.addItem(moduleName);
+		cpTextField.setText(creditPoints);
 	}
 
-	
-
-	
-    public void setModuleNameAndCredit(String moduleName, String creditPoints) {
-        modulComboBox.addItem(moduleName);
-        cpTextField.setText(creditPoints);
-    }
 }
